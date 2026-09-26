@@ -18,6 +18,8 @@ describe("Cadastro de disciplina", () => {
       .set("Authorization", await comTokenDeAdmin());
 
     console.log("Status da exclusão do aluno:", removeDisciplinaCadastrada.status);
+
+     idDisciplina = null;
   });
 
   after(async () => {

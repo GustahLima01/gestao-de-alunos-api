@@ -18,6 +18,8 @@ describe("Cadastro de alunos", () => {
       .set("Authorization", await comTokenDeAdmin());
 
     console.log("Status da exclusão do aluno:", removeAlunoCadastrado.status);
+
+     idAluno = null;
   });
 
   after(async () => {
