@@ -6,9 +6,18 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/gestao-de-alunos-test
+      PORT: "3000"
+      BASE_URL: http://127.0.0.1:3000
 
     services:
       mongodb:
@@ -16,7 +25,7 @@ jobs:
         ports:
           - 27017:27017
         options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -28,13 +37,40 @@ jobs:
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "24"
           cache: npm
 
       - name: Instalar dependências
         run: npm ci
 
+      - name: Iniciar API
+        run: |
+          nohup npm start > "$RUNNER_TEMP/api.log" 2>&1 &
+
+      - name: Aguardar API ficar disponível
+        run: |
+          for tentativa in {1..30}; do
+            if curl --fail --silent --max-time 2 "$BASE_URL/" > /dev/null; then
+              echo "API disponível."
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "A API não iniciou no tempo esperado."
+          exit 1
+
       - name: Executar testes
         run: npm test
         env:
-          MONGODB_URI: mongodb://127.0.0.1:27017/gestao-de-alunos-test
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_SENHA: ${{ secrets.ADMIN_SENHA }}
+          ALUNO_EMAIL: ${{ secrets.ALUNO_EMAIL }}
+          ALUNO_SENHA: ${{ secrets.ALUNO_SENHA }}
+
+      - name: Exibir logs da API em caso de falha
+        if: failure()
+        run: |
+          if [ -f "$RUNNER_TEMP/api.log" ]; then
+            cat "$RUNNER_TEMP/api.log"
+          fi

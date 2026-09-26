@@ -32,6 +32,8 @@ describe("Fluxo de entrega de um trabalho como aluno", () => {
             .set("Authorization", await comTokenDeAdmin())
             .send(testeEntregaTrabalhoAluno.dadosAluno);
 
+        idAluno = cadastroAlunoResposta.body.id;
+
         console.log("Aluno Cadastrado com Sucesso!")
 
         const matriculaAlunoResposta = await request(process.env.BASE_URL)

@@ -17,7 +17,9 @@ describe("Cadastro de disciplina", () => {
       .delete(`/api/admin/disciplinas/${idDisciplina}`)
       .set("Authorization", await comTokenDeAdmin());
 
-    console.log("Status da exclusão do aluno:", removeDisciplinaCadastrada.status);
+    console.log("Status da exclusão da disciplina:", removeDisciplinaCadastrada.status);
+
+     idDisciplina = null;
   });
 
   after(async () => {
